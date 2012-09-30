@@ -22,6 +22,10 @@ start(Id, Peer) ->
     timer:start(),
     spawn(fun() -> init(Id, Peer) end).
 
+%%
+%% Local functions
+%%
+
 init(Id, Peer) ->
     Predecessor = nil,
     {ok, Successor} = connect(Id, Peer),
@@ -69,18 +73,6 @@ node(Id, Predecessor, Successor) ->
         StrangeMessage ->
             io:format("strang message : ~s~n",[StrangeMessage])
 end.
-
-create_probe(Id,{Skey,Spid}) ->
-    Spid ! {probe,Id,[Id],erlang:now()}.
-
-remove_probe(T, Nodes) ->
-    Duration = timer:now_diff(erlang:now(),T),
-    Printer = fun(E) -> io:format("~p ",[E]) end, 
-    lists:foreach(Printer,Nodes),
-    io:format("~n Time = ~p",[Duration]).
-
-forward_probe(Ref, T, Nodes, Id, {Skey,Spid}) ->
-    Spid ! {probe,Ref,Nodes ++ [Id],T}.
 
 stabilize({_, Spid}) ->
     Spid ! {request, self()}.
@@ -132,7 +124,16 @@ notify({Nkey, Npid}, Id, Predecessor) ->
             end
     end.
 
+%% Probe (test)
+create_probe(Id,{Skey,Spid}) ->
+    Spid ! {probe,Id,[Id],erlang:now()}.
 
+remove_probe(T, Nodes) ->
+    Duration = timer:now_diff(erlang:now(),T),
+    Printer = fun(E) -> io:format("~p ",[E]) end, 
+    lists:foreach(Printer,Nodes),
+    io:format("~n Time = ~p",[Duration]).
 
-
+forward_probe(Ref, T, Nodes, Id, {Skey,Spid}) ->
+    Spid ! {probe,Ref,Nodes ++ [Id],T}.
 
